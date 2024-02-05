@@ -11,12 +11,13 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.cscore.UsbCamera;
-import org.opencv.core.Mat;
+import org.opencv.core.Mat;   
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.apriltag.*;
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation. If you change the name of this class or
@@ -29,6 +30,9 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
+//this is the apriltag detetor
+  AprilTagDetector tagDetector = new AprilTagDetector();
+  
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -47,7 +51,8 @@ m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
           // Get the UsbCamera from CameraServer
           UsbCamera camera = CameraServer.startAutomaticCapture();
           // Set the resolution
-          camera.setResolution(100, 100);
+
+          camera.setResolution(200, 200);
 
           // Get a CvSink. This will capture Mats from the camera
           CvSink cvSink = CameraServer.getVideo();
@@ -70,11 +75,17 @@ m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
               continue;
             }
 
-            
+            AprilTagDetection Tags[];
             //  Put a rectangle on the image
-            Imgproc.rectangle(
-                mat, new Point(100, 100), new Point(400, 400), new Scalar(255, 255, 255), 5);
+      
             
+            Tags = tagDetector.detect(mat);
+            AprilTagDetection firstTag;
+            firstTag = Tags[0];
+            if (firstTag != null){
+      Imgproc.rectangle(
+                mat, new Point(firstTag.getCornerX(0),firstTag.getCornerY(0)), new Point(firstTag.getCornerX(3),firstTag.getCornerY(3)), new Scalar(255, 0, 0), 3);
+            }
                 // Give the output stream a new image to display
 
             outputStream.putFrame(mat);
