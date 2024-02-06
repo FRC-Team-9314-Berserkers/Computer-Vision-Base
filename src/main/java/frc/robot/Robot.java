@@ -18,6 +18,7 @@ import org.opencv.imgproc.Imgproc;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.apriltag.*;
+
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation. If you change the name of this class or
@@ -30,95 +31,89 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
-//this is the apriltag detetor
   AprilTagDetector tagDetector = new AprilTagDetector();
   
 
-  /**
-   * This function is run when the robot is first started up and should be used for any
-   * initialization code.
-   */
   @Override
   public void robotInit() {
-  //  CameraServer.startAutomaticCapture();
-m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
+    m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
 
     m_visionThread =
     new Thread(
         () -> {
-          // Get the UsbCamera from CameraServer
+          // Get the UsbCamera from CameraServer and set up
           UsbCamera camera = CameraServer.startAutomaticCapture();
-          // Set the resolution
-
-          camera.setResolution(200, 200);
+          camera.setResolution(640, 480);
 
           // Get a CvSink. This will capture Mats from the camera
           CvSink cvSink = CameraServer.getVideo();
           // Setup a CvSource. This will send images back to the Dashboard
-          CvSource outputStream = CameraServer.putVideo("Rectangle", 640, 480);
+          CvSource outputStream = CameraServer.putVideo("Detection", 640, 480);
 
           // Mats are very memory expensive. Lets reuse this Mat.
-          Mat mat = new Mat();
+          Mat frame = new Mat();
+          // Also make an array of detected tags
+          AprilTagDetection tags[];
 
           // This cannot be 'true'. The program will never exit if it is. This
           // lets the robot stop this thread when restarting robot code or
           // deploying.
+          //Image Proccesing Loop
           while (!Thread.interrupted()) {
             // Tell the CvSink to grab a frame from the camera and put it
             // in the source mat.  If there is an error notify the output.
-            if (cvSink.grabFrame(mat) == 0) {
+            if (cvSink.grabFrame(frame) == 0) {
               // Send the output the error.
               outputStream.notifyError(cvSink.getError());
               // skip the rest of the current iteration
               continue;
             }
 
-            AprilTagDetection Tags[];
-            //  Put a rectangle on the image
-      
-            
-            Tags = tagDetector.detect(mat);
-            AprilTagDetection firstTag;
-            firstTag = Tags[0];
-            if (firstTag != null){
-      Imgproc.rectangle(
-                mat, new Point(firstTag.getCornerX(0),firstTag.getCornerY(0)), new Point(firstTag.getCornerX(3),firstTag.getCornerY(3)), new Scalar(255, 0, 0), 3);
-            }
-                // Give the output stream a new image to display
+            //Dtect tags and load into 'tags'
+            tags = tagDetector.detect(mat);
+            System.out.println("April Tags Detected:" + tags.length);
 
-            outputStream.putFrame(mat);
+            //Represents the first tag
+            AprilTagDetection firstTag;
+
+
+            if (tags.length > 0){
+              firstTag = tags[0];
+              System.out.println("April Tag Detected");
+
+              //Put a rectable around the april tag.
+              Imgproc.rectangle(
+                frame, 
+                new Point(firstTag.getCornerX(0),firstTag.getCornerY(0)), 
+                new Point(firstTag.getCornerX(3),firstTag.getCornerY(3)),
+                new Scalar(255, 0, 0), 3
+              );
+
+            }
+            
+            // Give the output stream a new image to display
+            outputStream.putFrame(frame);
           }
         });
-m_visionThread.setDaemon(true);
-m_visionThread.start();
   }
-  /**
-   * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
-   * that you want ran during disabled, autonomous, teleoperated and test.
-   *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
-   * SmartDashboard integrated updating.
-   */
-  @Override
-  public void robotPeriodic() {}
 
   /**
    * This autonomous (along with the chooser code above) shows how to select between different
    * autonomous modes using the dashboard. The sendable chooser code works with the Java
    * SmartDashboard. If you prefer the LabVIEW Dashboard, remove all of the chooser code and
    * uncomment the getString line to get the auto name from the text box below the Gyro
-   *
-   * <p>You can add additional auto modes by adding additional comparisons to the switch structure
-   * below with additional strings. If using the SendableChooser make sure to add them to the
-   * chooser code above as well.
    */
   @Override
   public void autonomousInit() {
     m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
+    m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
+
+    //Start Vision Thread
+    m_visionThread.setDaemon(true);
+    m_visionThread.start();
   }
 
   /** This function is called periodically during autonomous. */
@@ -135,35 +130,4 @@ m_visionThread.start();
     }
   }
 
-  /** This function is called once when teleop is enabled. */
-  @Override
-  public void teleopInit() {}
-
-  /** This function is called periodically during operator control. */
-  @Override
-  public void teleopPeriodic() {}
-
-  /** This function is called once when the robot is disabled. */
-  @Override
-  public void disabledInit() {}
-
-  /** This function is called periodically when disabled. */
-  @Override
-  public void disabledPeriodic() {}
-
-  /** This function is called once when test mode is enabled. */
-  @Override
-  public void testInit() {}
-
-  /** This function is called periodically during test mode. */
-  @Override
-  public void testPeriodic() {}
-
-  /** This function is called once when the robot is first started up. */
-  @Override
-  public void simulationInit() {}
-
-  /** This function is called periodically whilst in simulation. */
-  @Override
-  public void simulationPeriodic() {}
 }
