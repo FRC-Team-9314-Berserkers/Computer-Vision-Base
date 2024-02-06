@@ -72,7 +72,7 @@ public class Robot extends TimedRobot {
             }
 
             //Dtect tags and load into 'tags'
-            tags = tagDetector.detect(mat);
+            tags = tagDetector.detect(frame);
             System.out.println("April Tags Detected:" + tags.length);
 
             //Represents the first tag
@@ -92,6 +92,8 @@ public class Robot extends TimedRobot {
               );
 
             }
+
+            //Edit!
             
             // Give the output stream a new image to display
             outputStream.putFrame(frame);
