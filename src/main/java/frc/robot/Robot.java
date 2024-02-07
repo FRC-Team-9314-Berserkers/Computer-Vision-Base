@@ -40,9 +40,12 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
 
+    System.out.println("1");
     m_visionThread =
     new Thread(
         () -> {
+          System.out.println("Starting Vision Thread");
+
           // Get the UsbCamera from CameraServer and set up
           UsbCamera camera = CameraServer.startAutomaticCapture();
           camera.setResolution(640, 480);
@@ -52,6 +55,13 @@ public class Robot extends TimedRobot {
           // Setup a CvSource. This will send images back to the Dashboard
           CvSource outputStream = CameraServer.putVideo("Detection", 640, 480);
 
+          //Set up AprilTagDetector
+          AprilTagDetector.Config apeConfig = new AprilTagDetector.Config();
+          apeConfig.debug = true;
+          tagDetector.setConfig(apeConfig);
+          tagDetector.addFamily("tag16h5");
+
+          //tagDetector.
           // Mats are very memory expensive. Lets reuse this Mat.
           Mat frame = new Mat();
           // Also make an array of detected tags
@@ -79,6 +89,10 @@ public class Robot extends TimedRobot {
             AprilTagDetection firstTag;
 
 
+            /*for (AprilTagDetection tag : tags) {
+
+            }*/
+
             if (tags.length > 0){
               firstTag = tags[0];
               System.out.println("April Tag Detected");
@@ -99,6 +113,10 @@ public class Robot extends TimedRobot {
             outputStream.putFrame(frame);
           }
         });
+
+    //Start Vision Thread
+    m_visionThread.setDaemon(true);
+    m_visionThread.start();
   }
 
   /**
@@ -113,9 +131,6 @@ public class Robot extends TimedRobot {
     m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
 
-    //Start Vision Thread
-    m_visionThread.setDaemon(true);
-    m_visionThread.start();
   }
 
   /** This function is called periodically during autonomous. */
