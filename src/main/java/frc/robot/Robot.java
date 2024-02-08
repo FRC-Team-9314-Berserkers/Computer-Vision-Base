@@ -48,7 +48,7 @@ public class Robot extends TimedRobot {
 
           // Get the UsbCamera from CameraServer and set up
           UsbCamera camera = CameraServer.startAutomaticCapture();
-          camera.setResolution(640, 480);
+          camera.setResolution(400, 400);
 
           // Get a CvSink. This will capture Mats from the camera
           CvSink cvSink = CameraServer.getVideo();
@@ -57,13 +57,17 @@ public class Robot extends TimedRobot {
 
           //Set up AprilTagDetector
           AprilTagDetector.Config apeConfig = new AprilTagDetector.Config();
-          apeConfig.debug = true;
-          tagDetector.setConfig(apeConfig);
+          //apeConfig.debug = true;
+          //apeConfig.
+          //tagDetector.setConfig(apeConfig);
+          //tagDetector.
           tagDetector.addFamily("tag16h5");
 
           //tagDetector.
           // Mats are very memory expensive. Lets reuse this Mat.
           Mat frame = new Mat();
+          Mat g_frame = new Mat();
+          
           // Also make an array of detected tags
           AprilTagDetection tags[];
 
@@ -81,31 +85,34 @@ public class Robot extends TimedRobot {
               continue;
             }
 
-            //Dtect tags and load into 'tags'
-            tags = tagDetector.detect(frame);
-            System.out.println("April Tags Detected:" + tags.length);
+            Imgproc.cvtColor(frame, g_frame, Imgproc.COLOR_RGB2GRAY);
 
-            //Represents the first tag
-            AprilTagDetection firstTag;
+            //Detect tags and load into 'tags'
+            tags = tagDetector.detect(g_frame);
+            //System.out.println("April Tags Detected:" + tags.length);
 
 
-            /*for (AprilTagDetection tag : tags) {
-
-            }*/
-
-            if (tags.length > 0){
-              firstTag = tags[0];
-              System.out.println("April Tag Detected");
-
-              //Put a rectable around the april tag.
-              Imgproc.rectangle(
-                frame, 
-                new Point(firstTag.getCornerX(0),firstTag.getCornerY(0)), 
-                new Point(firstTag.getCornerX(3),firstTag.getCornerY(3)),
-                new Scalar(255, 0, 0), 3
-              );
+            for (AprilTagDetection tag : tags) {
+              //Put a quad around the april tag.
+              for (int i=0;i<4;i++) {
+                var j = (i + 1) % 4;
+                var pt1 = new Point(tag.getCornerX(i),tag.getCornerY(i));
+                var pt2 = new Point(tag.getCornerX(j),tag.getCornerY(j));
+                Imgproc.line(frame, pt1, pt2, new Scalar(0, 255, 0), 2);
+              }
+              
+              System.out.println("April Tag Detected:" + tag.getId());
 
             }
+            
+
+           // if (tags.length > 0){
+              //firstTag = tags[0];
+              //System.out.println("April Tag Detected");
+
+              
+
+            //}
 
             //Edit!
             
