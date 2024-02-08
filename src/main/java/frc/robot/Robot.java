@@ -104,15 +104,6 @@ public class Robot extends TimedRobot {
               System.out.println("April Tag Detected:" + tag.getId());
 
             }
-            
-
-           // if (tags.length > 0){
-              //firstTag = tags[0];
-              //System.out.println("April Tag Detected");
-
-              
-
-            //}
 
             //Edit!
             
