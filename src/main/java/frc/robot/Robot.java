@@ -48,7 +48,7 @@ public class Robot extends TimedRobot {
 
           // Get the UsbCamera from CameraServer and set up
           UsbCamera camera = CameraServer.startAutomaticCapture();
-          camera.setResolution(400, 400);
+          camera.setResolution(640, 480);
 
           // Get a CvSink. This will capture Mats from the camera
           CvSink cvSink = CameraServer.getVideo();
@@ -57,11 +57,14 @@ public class Robot extends TimedRobot {
 
           //Set up AprilTagDetector
           AprilTagDetector.Config apeConfig = new AprilTagDetector.Config();
-          //apeConfig.debug = true;
+          apeConfig.debug = false;
+          apeConfig.
+          
           //apeConfig.
-          //tagDetector.setConfig(apeConfig);
+          tagDetector.setConfig(apeConfig);
           //tagDetector.
           tagDetector.addFamily("tag16h5");
+          
 
           //tagDetector.
           // Mats are very memory expensive. Lets reuse this Mat.
